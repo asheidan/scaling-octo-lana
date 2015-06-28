@@ -175,7 +175,7 @@ var DetailView = React.createClass({
 		var tags = (task.tags || []).sort().join(", ");
 		return (
 			<div className="detailView">
-				<StoreStatus store={TaskStore} />
+				<StoreStatus store={TaskStore} name="TaskStore" />
 				<h4>Title</h4>
 				<input type="text" value={task.title} onChange={this.taskTitleChanged} />
 
@@ -326,7 +326,7 @@ var StoreStatus = React.createClass({
 	render: function () {
 		var icon = this.state.inSync ? "yes" : "no";
 		return (
-			<div>In sync: {icon}</div>
+				<div>{this.props.name} is in sync: {icon}</div>
 		);
 	},
 });
