@@ -1,145 +1,172 @@
 body, td {
-	font-family: "Avenir next", sans-serif;
+	font-family: "Avenir next", Roboto, sans-serif;
+}
+
+input[type=checkbox] {
+	border: 2px solid black;
+	border-radius: 2px;
+}
+
+.textInput {
+	margin: 15px;
+	max-width: 370px;
+}
+.textInput label {
+	display: block;
+	position: absolute;
+	color: rgb(145, 170, 157);
+
+	margin-top: 0px;
 	font-size: 11px;
+	transition: margin-top 0.2s ease, font-size 0.2s ease, color 0.2s ease;
+}
+.textInput input[type=text],
+.textInput textarea {
+	border-color: rgb(209, 219, 189);
+	border-style: solid;
+	border-width: 0px 0px 1px 0px;
+	border-radius: 0px;
+
+	width: 100%;
+	font-size: 16px;
+	font-family: Avenir next, Roboto, sans-serif;
+
+	margin-top: 13px;
+	transition: border-color 0.2s ease;
+}
+.textInput.expandingArea pre {
+	width: 100%;
+	font: 400 16px Avenir next, Roboto, sans-serif;
+	white-space: pre-wrap;
+	word-wrap: break-textInput;
+}
+.textInput input[type=text]:focus,
+.textInput textarea:focus {
+	outline: none;
+	border-color: rgb(62,96,111);
+}
+.textInput.focused label {
+	color: rgb(62,96,111);
+}
+.textInput.empty:not(.focused) label {
+	margin-top: 13px;
+	font-size: 16px;
+}
+/*
+.textInput input[type=text]::-moz-placeholder,
+.textInput input[type=text]:-moz-placeholder,
+.textInput input[type=text]:-ms-input-placeholder,
+*/
+.textInput input[type=text]::-webkit-input-placeholder,
+.textInput textarea::-webkit-input-placeholder {
+	color: rgb(209, 219, 189);
+	transition: color 0.2s ease;
+}
+.textInput textarea {
+	resize: vertical;
+	height: auto;
+}
+/*
+.textInput.empty:not(.focused) input[type=text]::-moz-placeholder,
+.textInput.empty:not(.focused) input[type=text]:-moz-placeholder,
+.textInput.empty:not(.focused) input[type=text]:-ms-input-placeholder,
+*/
+.textInput.empty:not(.focused) input[type=text]::-webkit-input-placeholder,
+.textInput.empty:not(.focused) textarea::-webkit-input-placeholder {
+	color: rgba(255,255,255,0);
+}
+
+body {
 	margin: 0px;
 }
 
-ul {
+table thead th {
+	text-transform: uppercase;
+	font-weight: normal;
+	font-size: 11px;
+	line-height: 16px;
+	color: rgba(0,0,0,0.5);
+}
+table tbody td {
+	font-size: 13px;
+	line-height: 20px;
 }
 
-.viewSelection {
-	height: 100%;
-	float: left;
+.appBar {
+	line-height: 64px;
+	background-color: rgb(25, 52, 65);
+	color: rgba(255,255,255,0.87);
 
+	padding: 0px 24px;
+	margin: 0px 0px 5px 0px;
+	box-shadow: 0px 2px 4px rgba(0,0,0,0.5);
+	display: -webkit-box;
+	display: -moz-box;
+	display: -ms-flexbox;
+	display: -webkit-flex;
+	display: flex;
+	flex-direction: row;
+}
+
+.appBar h1 {
 	margin: 0px;
-	padding: 0px;
-	list-style: none;
 
-	color: grey;
-	background-color: #c4cbcf;
+	-webkit-box-flex: 1;
+	-moz-box-flex: 1;
+	-webkit-flex: 1;
+	-ms-flex: 1;
+	flex: 1;
+
+	font-weight: normal;
+	line-height: 64px;
+	font-size: 24px;
+
+	text-overflow: ellipsis;
 }
-.viewSelection li {
-	text-align: center;
-	width: 50px;
-	height: 50px;
-	vertical-align: middle;
-	border-bottom: 1px solid #9e9e9e;
-	border-right: 1px solid #9e9e9e;
-	background-color: #c4cbcf;
-	padding: 5px;
-}
-.viewSelection .current {
-	border-right-color: transparent;
-	background-color: #e7eff4;
-}
-.viewSelection .current .icon {
-	color: blue;
-}
-.viewSelection li .icon {
+.appBar a {
+	text-decoration: none;
+	color: inherit;
 	font-size: 24px;
 	font-weight: bold;
 }
 
-.projectView {
-}
-.projectView .projectList {
-	box-sizing: border-box;
-	height: 100%;
-
-	border-right: 5px solid #a3cdfe;
-	float: left;
-	background-color: #e7eff4;
-
-	margin: 0px 10px 0px 0px;
-	padding: 5px 0px 5px 5px;
+.taskList {
 	list-style: none;
+	padding: 0px;
+	margin: 0px;
 }
-.projectView ul.projectList li {
-	padding: 5px 10px;
-	border-top-left-radius: 5px;
-	border-bottom-left-radius: 5px;
-
-	width: 120px;
+.taskList .taskItem {
+	padding: 5px 15px;
 }
-
-.projectView ul.projectList li.current {
-	background-color: #a3cdfe;
+.taskList .taskItem:hover {
+	background-color: rgba(0, 188, 212, 0.1);
 }
 
 .taskItem {
-	padding: 5px 10px;
+	line-height: 24px;
+	font-size: 14px;
 }
-.taskItem.current {
-	background-color: #e8eef7;
-}
-
-.taskItem label {
-	font-weight: bold;
+.taskItem a {
+	text-decoration: none;
+	color: inherit;
 }
 .taskItem .title {
+	display: block;
+}
+.taskItem .project {
+	display: block;
+	float: right;
+	margin-left: 5px;
+	font-size: 11px;
+	color: magenta;
 }
 .taskItem .tags {
-	color: blue;
 	float: right;
-	font-size: 90%;
-}
-
-.detailView {
-	box-sizing: border-box;
-	height: 100%;
-	width: 200px;
-
-	border-left: 1px solid #9e9e9e;
-	background-color: #f5f5f5;
-
-	float: right;
-	margin-left: 10px;
-
-	padding: 10px;
-
-	overflow-y: scroll;
-}
-
-.detailView h4 {
-	margin: 5px 0px;
-}
-.detailView hr {
-	border: 0px;
-	background-color: #9e9e9e;
-	height: 1px;
-}
-.detailView input[type=text],
-.detailView textarea {
-	width: 100%;
-	border: 1px solid #b8b8b8;
-	padding: 2px 5px;
-}
-.detailView textarea {
-	height: 100px;
-}
-
-.taskList {
-	margin-right: 200px;
-}
-.inboxView .taskList {
-	margin-left: 61px;
-}
-.projectView .taskList {
-	margin-left: 211px;
-}
-.smartBox {
-	padding: 5px 10px;
-}
-.smartBox input[type=text] {
+	margin-left: 5px;
 	display: block;
-	width: 100%;
-
-	border: 1px solid #9e9e9e;
-	border-radius: 3px;
+	color: rgb(62, 96, 111);
+	font-size: 11px;
 }
 
-table {
-	min-width: 400px;
-	border-spacing: 0px;
-	border-collaps: collapse;
+.taskView .details {
 }

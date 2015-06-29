@@ -68,3 +68,17 @@ QUnit.test("Get should return identical copy", function (assert) {
 
 	assert.ok( result === o );
 });
+
+QUnit.test("Add should set id in object", function (assert) {
+	var store = Store.create();
+
+	var o = {
+		apa: 42,
+		bepa: "lilla lisa",
+		cepa: "kalle anka",
+	};
+
+	var id = store.add(o);
+
+	assert.equal(o.id, id);
+});

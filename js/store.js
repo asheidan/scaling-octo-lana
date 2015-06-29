@@ -41,7 +41,8 @@ Store.create = function () {
 
 	if (Store.localStoreSupport()) {
 		self.sync.doSync = function () {
-			console.log(JSON.stringify(self.getAll()));
+			//console.log(JSON.stringify(self.getAll()));
+			console.log("Store tried to sync");
 			self.inSync = true;
 			self.events.synced();
 		};
