@@ -8,7 +8,7 @@ input[type=checkbox] {
 }
 
 .textInput {
-	margin: 15px;
+	margin: 15px 0px;
 	max-width: 370px;
 }
 .textInput label {
@@ -32,6 +32,7 @@ input[type=checkbox] {
 	font-family: Avenir next, Roboto, sans-serif;
 
 	margin-top: 13px;
+	padding: 0px 0px 2px 0px;
 	transition: border-color 0.2s ease;
 }
 .textInput.expandingArea pre {
@@ -169,4 +170,31 @@ table tbody td {
 }
 
 .taskView .details {
+}
+
+.detailsView {
+	margin: 0px 15px;
+}
+
+.taskNotesList {
+	margin: 10px 15px;
+}
+.taskNotesList h5 {
+	font-size: 14px;
+	font-weight: normal;
+	margin: 5px 0px;
+	color: rgb(145, 170, 157);
+	//border-top: 1px solid rgb(145, 170, 157);
+}
+.taskNotesList ul {
+	list-style: none;
+	padding: 0px;
+	margin: 0px;
+}
+.taskNotesList ul li {
+	margin: 5px 0px;
+}
+.taskNotesList .timestamp {
+	font-size: 11px;
+	color: rgb(145, 170, 157)
 }
