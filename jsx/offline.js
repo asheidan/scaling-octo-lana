@@ -1,267 +1,252 @@
-"use strict";
-
-var ProjectStore = Store.create();
-var cleanup = ProjectStore.add({title: "Cleanup"});
-ProjectStore.add({title: "The Seasoning"});
-ProjectStore.add({title: "Fixa bilen"});
-
-
 var TaskStore = Store.create();
-TaskStore.add({title: "Bada nisse", projectId: cleanup, description: "Nisse är riktigt smutsig och behöver verkligen bada. Att inte bada är inte vore katastrofalt och skulle kunna leda till en sanitär olägenhet.", tags: ["apa", "bepa", "cepa"], created: "2015-01-01 12:24:40"});
-TaskStore.add({title: "Herpa derp", description: "Lorem ipsum dolor sit amet, consectetur adipiscing elit. Donec vitae lectus ac libero consectetur congue tincidunt vitae turpis. Mauris placerat ex et purus luctus varius. Vivamus elit enim, semper eu arcu at, dignissim sollicitudin lectus. Morbi non magna vitae eros lobortis scelerisque sit amet vel turpis. Nullam risus felis, ornare sed nisi ac, fringilla elementum nunc. Fusce tempus, quam ut eleifend luctus, lacus odio euismod risus, eu sagittis leo lorem in sem. Vestibulum tristique neque scelerisque, rutrum libero non, placerat nibh. Maecenas ut dolor vitae ligula tempus finibus ut nec erat. In et arcu nec massa rutrum ultricies.", tags: ["derp", "derp", "derp"]});
-TaskStore.getTasksForProject = function (projectId) {
-	var it = this.items.values();
-	var result = [];
-	for (var task of it) {
-		if (projectId === task.projectId) {
-			result.push(task);
-		}
-	}
+TaskStore.addNote = function (taskId, noteBody) {
+	var task = this.items.get(taskId);
+	if (task) {
+		task.notes = task.notes || [];
+		task.notes.push({timestamp: new Date(), body: noteBody});
 
-	return result;
+		this.events.change();
+	}
 };
 
-var ProjectItem = React.createClass({
-	clickHandler: function (event) {
-		event.preventDefault();
-		this.props.select(this.props.project);
-	},
-	render: function () {
-		var className;
-		if (this.props.current) {
-			className = "current";
-		}
-		return (
-			<li className={className} onClick={this.clickHandler} >{this.props.project.title}</li>
-		);
-	},
-});
-
-var ProjectList = React.createClass({
-	render: function () {
-		var currentProject = this.props.currentProject;
-		var selectHandler = this.props.select;
-		var projectNodes = this.props.projects.map(function (project) {
-			var isCurrent = (project.id == currentProject.id);
-			return (
-					<ProjectItem key={project.id} project={project} current={isCurrent} select={selectHandler} />
-			);
-		});
-		return (
-				<ul className="projectList">{projectNodes}</ul>
-		);
-	},
-});
-
-var TaskItem = React.createClass({
-	clickHandler: function (event) {
-		event.preventDefault();
-		this.props.select(this.props.task);
-	},
-	render: function () {
-		var tags = (this.props.task.tags || []).join(", ");
-		var className = ["taskItem"];
-		if (this.props.current) {
-			className.push("current");
-		}
-		return (
-				<div className={className.join(" ")} onClick={this.clickHandler}>
-				<div className="tags">
-					{tags}
-				</div>
-				<div className="title">
-					{this.props.task.title}
-				</div>
-			</div>
-		);
-	}
-});
+TaskStore.add({title: "Bada nisse", description: "Nisse är riktigt smutsig och behöver verkligen bada. Att inte bada är inte vore katastrofalt och skulle kunna leda till en sanitär olägenhet.", tags: ["apa", "bepa", "cepa"], created: "2015-01-01 12:24:40"});
+TaskStore.add({title: "Herpa derp", description: "Lorem ipsum dolor sit amet, consectetur adipiscing elit. Donec vitae lectus ac libero consectetur congue tincidunt vitae turpis. Mauris placerat ex et purus luctus varius. Vivamus elit enim, semper eu arcu at, dignissim sollicitudin lectus. Morbi non magna vitae eros lobortis scelerisque sit amet vel turpis. Nullam risus felis, ornare sed nisi ac, fringilla elementum nunc. Fusce tempus, quam ut eleifend luctus, lacus odio euismod risus, eu sagittis leo lorem in sem. Vestibulum tristique neque scelerisque, rutrum libero non, placerat nibh. Maecenas ut dolor vitae ligula tempus finibus ut nec erat. In et arcu nec massa rutrum ultricies.", tags: ["derp", "derp", "derp"]});
 
 var TaskList = React.createClass({
 	render: function () {
-		var callback = this.props.select;
-		var currentTaskId = this.props.currentTask.id
+		var select = this.props.select;
 		var taskNodes = this.props.tasks.map(function (task) {
-			var isCurrent = (task.id == currentTaskId);
 			return (
-				<TaskItem key={task.id} task={task} current={isCurrent} select={callback} />
+					<TaskItem key={task.id} task={task} selectTask={select} />
 			);
 		});
 		return (
-			<div className="taskList">
-				<SmartBox />
+			<ul className="taskList">
 				{taskNodes}
-			</div>
-		);
-	}
-});
-
-var ProjectView = React.createClass({
-	getInitialState: function () {
-		return {
-			currentProject: {id: null},
-			currentTask: {id: null},
-			projects: ProjectStore.getAll(),
-			tasks: [],
-		};
-	},
-	storeDidChange: function () {},
-	componentDidMount: function () {
-		var unregister = ProjectStore.events.change.listen(this.storeDidChange, this);
-		this.setState({unregister: unregister});
-	},
-	componentWillUnmount: function () {
-		this.state.unregister();
-	},
-	selectProject: function (project) {
-		var tasks = TaskStore.getTasksForProject(project.id);
-		this.setState({
-			currentProject: ProjectStore.getId(project.id),
-			currentTask: {id: null},
-			tasks: tasks,
-		});
-	},
-	selectTask: function (task) {
-		this.setState({currentTask: TaskStore.getId(task.id)});
-	},
-	render: function () {
-		return (
-			<div className="projectView">
-				<ProjectList projects={this.state.projects} currentProject={this.state.currentProject} select={this.selectProject} />
-				<DetailView project={this.state.currentProject} task={this.state.currentTask} />
-				<SmartBox />
-				<TaskList tasks={this.state.tasks} currentTask={this.state.currentTask} select={this.selectTask} />
-			</div>
-		);
-	},
-});
-
-var ViewSelection = React.createClass({
-	render: function () {
-		return (
-			<ul className="viewSelection">
-				<li className="current"><div className="icon">I</div>Inbox</li>
-				<li><div className="icon">P</div>Projects</li>
-				<li><div className="icon">C</div>Contexts</li>
-				<li><div className="icon">R</div>Review</li>
-				<li><div className="icon">S</div>Search</li>
 			</ul>
 		);
 	},
 });
 
-var DetailView = React.createClass({
-	getInitialState: function () {
-		return {
-			title: this.props.title,
-			description: this.props.description,
-			notes: [],
-		};
-	},
-	taskTitleChanged: function (event) {
-		TaskStore.update(this.props.task.id, {title: event.target.value});
-	},
-	taskDescriptionChanged: function (event) {
-		TaskStore.update(this.props.task.id, {description: event.target.value});
-	},
-	taskCreatedChanged: function (event) {
-		TaskStore.update(this.props.task.id, {created: event.target.value});
-	},
-	taskModifiedChanged: function (event) {
-		TaskStore.update(this.props.task.id, {modified: event.target.value});
+var TaskItem = React.createClass({
+	handleClick: function (event) {
+		event.preventDefault();
+		this.props.selectTask(this.props.task);
 	},
 	render: function () {
 		var task = this.props.task;
-		var tags = (task.tags || []).sort().join(", ");
+		var tags = task.tags.join(", ");
 		return (
-			<div className="detailView">
-				<StoreStatus store={TaskStore} name="TaskStore" />
-				<h4>Title</h4>
-				<input type="text" value={task.title} onChange={this.taskTitleChanged} />
+			<li className="taskItem" onClick={this.handleClick}>
+				<div className="tags">{tags}</div>
+				<div className="project"></div>
+				<a href="#" className="title">{task.title}</a>
+			</li>
+		);
+	},
+});
 
-				<h4>Description</h4>
-				<textarea key={task.id} value={task.description} onChange={this.taskDescriptionChanged}  />
-
-				<h4>Tags</h4>
-				<input type="text" value={tags} />
-				<hr />
-
-				<h4>Project</h4>
-				<hr />
-
-				<h4>Dates</h4>
-				<p>
-				<div>
-					<label>Due</label>
-					<DateInput key={task.id} value={task.due} onChange={this.taskCreatedChanged} />
+var DetailsView = React.createClass ({
+	getInitialState: function () {
+		return {
+			task: this.props.task,
+		};
+	},
+	_updateTask: function(field, value) {
+		if (this.state.task.id) {
+			var payload = {};
+			payload[field] = value;
+			console.log(this.state.task.id, payload);
+			TaskStore.update(this.state.task.id, payload);
+		}
+	},
+	handleTitleChange: function (e) {
+		this._updateTask("title", e.target.value);
+	},
+	handleTagsChange: function (e) {
+		this._updateTask("tags", e.target.value);
+	},
+	handleDescriptionChange: function (e) {
+		this._updateTask("description", e.target.value);
+	},
+	render: function () {
+		return (
+			<div>
+			<div className="detailsView">
+				<TextInput label="Title" id="task_title" placeholder="Do dishes" onBlur={this.handleTitleChange} value={this.props.task.title} />
+				<TextInput label="Tags" id="task_tags" placeholder="apa, bepa, cepa" onBlur={this.handleTagsChange} value={this.props.task.tags} />
+				<TextArea label="Description" id="task_description" placeholder="Longform description of the task" onBlur={this.handleDescriptionChange} value={this.props.task.description} />
+			</div>
+				<NotesList notes={this.props.task.notes} taskId={this.props.task.id} />
 				</div>
-				<div>
-					<label>Deferred</label>
-					<DateInput key={task.id} value={task.deferred} onChange={this.taskCreatedChanged} />
-				</div>
-				</p>
-				<p>
-				<div>
-					<label>Created</label>
-					<DateInput key={task.id} value={task.created} onChange={this.taskCreatedChanged} />
-				</div>
-				<div>
-					<label>Modified</label>
-					<DateInput key={task.id} value={task.modified} onChange={this.taskModifiedChanged} />
-				</div>
-				</p>
-				<hr />
+		);
+	},
+});
 
-				<h4>Notes</h4>
-				<textarea></textarea>
-				<TaskNotesList notes={this.state.notes} />
+var NotesList = React.createClass({
+	addNote: function (event) {
+		event.preventDefault();
+		var element = event.target["body"];
+		var body = element.value.trim();
+		console.log(body);
+		if (body == "") { return; }
 
+		TaskStore.addNote(this.props.taskId, body);
+
+		this.refs.body.setState({inputValue: ""});
+	},
+	render: function () {
+		var notes;
+		if (this.props.notes) {
+			notes = this.props.notes.map(function (note) {
+				return (
+					<li>
+						{note.body}
+						<div className="timestamp">{note.timestamp.toISOString()}</div>
+					</li>
+				);
+			});
+		}
+		return (
+			<div className="taskNotesList">
+				<h5>Notes</h5>
+				<ul>
+					{notes}
+				</ul>
+				<form onSubmit={this.addNote}>
+				<TextInput label="Add note" id="task_add_note" placeholder="Text of note" ref="body" name="body" />
+				</form>
 			</div>
 		);
 	},
 });
 
-var TaskNotesList = React.createClass({
+var TaskView = React.createClass({
 	render: function () {
 		return (
-				<p>
-				<div>Lorem ipsum dolor sit amet, consectetur adipiscing elit.</div>
-				<div><em>2015-05-25 23:55:56</em></div>
-				</p>
-		);
+			<div className="taskView">
+				<DetailsView task={this.props.task} />
+			</div>);
 	},
 });
 
-var SmartBox = React.createClass({
+var TextInput = React.createClass({
 	getInitialState: function () {
-		return {inputValue:""};
+		return {
+			inputValue: this.props.value,
+			isFocused: false,
+		};
 	},
 	handleInput: function (e) {
 		this.setState({inputValue: e.target.value});
 	},
-	onBlur: function (e) {
-		TaskStore.add({title: e.target.value});
-		this.setState({inputValue: ""});
+	handleBlur: function (e) {
+		this.setState({isFocused: false});
+		if (this.props.onBlur) {
+			this.props.onBlur(e);
+		}
+		if (this.props.clearOnBlur) {
+			this.setState({inputValue: ""});
+		}
+	},
+	handleFocus: function (e) {
+		this.setState({isFocused: true});
 	},
 	render: function () {
+		var {id, label, value, placeholder, onBlur, ...other} = this.props;
+		var inputValue = this.state.inputValue;
+		var empty = (! inputValue);
+		var classes = ["textInput"];
+		if (empty) {
+			classes.push("empty");
+		}
+		if (this.state.isFocused) {
+			classes.push("focused");
+		}
 		return (
-			<div className="smartBox">
-				<input type="text" placeholder="Create new task" value={this.state.inputValue} onChange={this.handleInput} onBlur={this.onBlur} />
+			<div className={classes.join(" ")}>
+				<label htmlFor={id}>{label}</label>
+				<input
+					id={id}
+					type="text"
+					value={this.state.inputValue}
+					placeholder={placeholder}
+					onChange={this.handleInput}
+					onBlur={this.handleBlur}
+					onFocus={this.handleFocus}
+			{...other}
+					/>
+			</div>
+		);
+	},
+});
+var TextArea = React.createClass({
+	getInitialState: function () {
+		return {
+			inputValue: this.props.value,
+			isFocused: false,
+		};
+	},
+	handleInput: function (e) {
+		this.setState({inputValue: e.target.value});
+	},
+	handleBlur: function (e) {
+		this.setState({isFocused: false});
+	},
+	handleFocus: function (e) {
+		this.setState({isFocused: true});
+	},
+	render: function () {
+		var {id, label, value, placeholder, ...other} = this.props;
+		var inputValue = this.state.inputValue;
+		var empty = (! inputValue);
+		var classes = ["textInput", "expandingArea"];
+		if (empty) {
+			classes.push("empty");
+		}
+		if (this.state.isFocused) {
+			classes.push("focused");
+		}
+		// 				<pre><span>{this.state.inputValue}</span><br /></pre>
+		return (
+			<div className={classes.join(" ")}>
+				<label htmlFor={id}>{label}</label>
+				<textarea
+					id={id}
+					type="text"
+					value={this.state.inputValue}
+					placeholder={placeholder}
+					onChange={this.handleInput}
+					onBlur={this.handleBlur}
+					onFocus={this.handleFocus}
+					{...other}></textarea>
+			</div>
+		);
+	},
+});
+
+var AppBar = React.createClass({
+	render: function () {
+		return (
+			<div className="appBar">
+				<h1>{this.props.title}</h1>
+				<a href="#">+</a>
 			</div>
 		);
 	},
 });
 
 var InboxView = React.createClass({
-	getInitialState: function () {
+	getInitialState: function() {
 		return {
-			currentTask: {id: null},
 			tasks: TaskStore.getAll(),
+			selectedTask: null,
 		};
 	},
-	updateTask: function (id, payload) {
-		TaskStore.update(id, payload);
-		//this.setState({currentTask: payload});
+	selectTask: function (task) {
+		this.setState({selectedTask: task});
+	},
+	createTask: function () {
 	},
 	storeDidChange: function () {
 		this.setState({tasks: TaskStore.getAll()});
@@ -273,63 +258,69 @@ var InboxView = React.createClass({
 	componentWillUnmount: function () {
 		this.state.unregister();
 	},
-	selectTask: function (task) {
-		this.setState({currentTask: TaskStore.getId(task.id)});
-	},
 	render: function () {
+		var bar;
+		var content;
+		if (this.state.selectedTask) {
+			title = this.state.selectedTask.title;
+			bar = (
+				<AppBar title={title} />
+			);
+			content = (
+				<DetailsView task={this.state.selectedTask} />
+			);
+		}
+		else {
+			bar = (
+				<AppBar title="Inbox" />
+			);
+			content = (
+				<TaskList tasks={this.state.tasks} select={this.selectTask} />
+			);
+		}
 		return (
 			<div className="inboxView">
-				<DetailView task={this.state.currentTask} updateTask={this.updateTask} />
-				<TaskList tasks={this.state.tasks} currentTask={this.state.currentTask} select={this.selectTask} />
+				{bar}
+				{content}
 			</div>
 		);
 	},
 });
+
+var NewTaskView = React.createClass({
+	getInitialState: function () {
+		return {
+			task: {},
+		};
+	},
+	render: function () {
+		return (
+			<div className="newTaskView">
+				<AppBar title="NewTask" />
+				<DetailsView task={this.state.task} />
+			</div>
+		);
+	},
+});
+
+
 
 var Application = React.createClass({
 	render: function () {
+		var content;
+		content = ( <InboxView select={this.selectTask} /> );
 		return (
 			<div>
-				<ViewSelection />
-				<InboxView />
+				{content}
 			</div>
 		);
-	}
-});
-
-var StoreStatus = React.createClass({
-	getInitialState: function () {
-		return {
-			inSync: this.props.store.inSync,
-			unsubscribe: function () {},
-		};
-	},
-	componentDidMount: function () {
-		var store = this.props.store;
-		var outOfSync = store.events.change.listen(this.storeOutOfSync, this);
-		var inSync = store.events.synced.listen(this.storeInSync, this);
-
-		this.setState({unsubscribe: function () {
-			outOfSync();
-			inSync();
-		}});
-	},
-	componentWillUnmount: function () {
-		this.state.unsubscribe();
-	},
-	storeOutOfSync: function () {
-		this.setState({inSync: false});
-	},
-	storeInSync: function () {
-		this.setState({inSync: true});
-	},
-	render: function () {
-		var icon = this.state.inSync ? "yes" : "no";
-		return (
-				<div>{this.props.name} is in sync: {icon}</div>
-		);
 	},
 });
 
-
-React.render(<Application />, document.getElementById('content'));
+React.render((
+	<Router history={history}>
+		<Route path="/" component={Application}>
+			<Route path="inbox" component={InboxView}/>
+		</Route>
+	</Router>
+), document.getElementById('content'));
