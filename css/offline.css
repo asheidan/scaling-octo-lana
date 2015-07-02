@@ -94,19 +94,28 @@ table tbody td {
 }
 
 .appBar {
-	line-height: 64px;
-	background-color: rgb(25, 52, 65);
 	color: rgba(255,255,255,0.87);
 
 	padding: 0px 24px;
 	margin: 0px 0px 5px 0px;
 	box-shadow: 0px 2px 4px rgba(0,0,0,0.5);
+}
+.appBar .firstLine {
 	display: -webkit-box;
 	display: -moz-box;
 	display: -ms-flexbox;
 	display: -webkit-flex;
 	display: flex;
 	flex-direction: row;
+}
+.inboxView .appBar {
+	background-color: rgb(25, 52, 65);
+}
+.projectView .appBar {
+	background-color: rgb(64, 24, 24);
+}
+.searchView .appBar {
+	background-color: rgb(64, 24, 54);
 }
 
 .appBar h1 {
@@ -124,11 +133,49 @@ table tbody td {
 
 	text-overflow: ellipsis;
 }
-.appBar a {
+.appBar a.newTaskLink {
 	text-decoration: none;
 	color: inherit;
+	line-height: 64px;
 	font-size: 24px;
 	font-weight: bold;
+}
+.appBar .navigation {
+	list-style: none;
+	display: block;
+	position: absolute;
+	top: 47px;
+	line-height: 15px;
+	font-size: 13px;
+	margin: 0px;
+	padding: 0px;
+}
+.appBar .navigation:after {
+	content: " ";
+	clear: both;
+	height: 0px;
+	display: block;
+	visibility: hidden;
+}
+.appBar .navigation li {
+	float: left;
+}
+.appBar .navigation a {
+	color: rgba(255,255,255,0.2);
+	text-decoration: none;
+
+	display: block;
+	padding: 0px 3px;
+	border-bottom: 2px solid transparent;
+
+	transition: color 0.2s ease, border-color 0.2s ease;
+}
+.appBar:hover .navigation a {
+	color: rgba(255,255,255,0.5);
+}
+.appBar .navigation a:hover {
+	color: rgba(255,255,255,0.87);
+	border-color: rgba(255,255,255,0.87);
 }
 
 .taskList {

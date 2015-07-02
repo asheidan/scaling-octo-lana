@@ -1,3 +1,10 @@
+//var React = require('react');
+//var Store = require('../js/store.js');
+
+var Route = ReactRouter.Route;
+var RouteHandler = ReactRouter.RouteHandler;
+var Link = ReactRouter.Link;
+
 var TaskStore = Store.create();
 TaskStore.addNote = function (taskId, noteBody) {
 	var task = this.items.get(taskId);
@@ -17,7 +24,7 @@ var TaskList = React.createClass({
 		var select = this.props.select;
 		var taskNodes = this.props.tasks.map(function (task) {
 			return (
-					<TaskItem key={task.id} task={task} selectTask={select} />
+				<TaskItem key={task.id} task={task} selectTask={select} />
 			);
 		});
 		return (
@@ -29,18 +36,20 @@ var TaskList = React.createClass({
 });
 
 var TaskItem = React.createClass({
+	/*
 	handleClick: function (event) {
 		event.preventDefault();
 		this.props.selectTask(this.props.task);
 	},
+	*/
 	render: function () {
 		var task = this.props.task;
 		var tags = task.tags.join(", ");
 		return (
-			<li className="taskItem" onClick={this.handleClick}>
+			<li className="taskItem">
 				<div className="tags">{tags}</div>
 				<div className="project"></div>
-				<a href="#" className="title">{task.title}</a>
+				<Link to="inboxTask" params={{taskId: task.id}} className="title">{task.title}</Link>
 			</li>
 		);
 	},
@@ -53,11 +62,16 @@ var DetailsView = React.createClass ({
 		};
 	},
 	_updateTask: function(field, value) {
+		var payload;
 		if (this.state.task.id) {
-			var payload = {};
+			payload = {};
 			payload[field] = value;
-			console.log(this.state.task.id, payload);
 			TaskStore.update(this.state.task.id, payload);
+		}
+		else {
+			payload = {task: this.state.task};
+			payload.task[field] = value;
+			this.setState(payload);
 		}
 	},
 	handleTitleChange: function (e) {
@@ -71,14 +85,11 @@ var DetailsView = React.createClass ({
 	},
 	render: function () {
 		return (
-			<div>
 			<div className="detailsView">
 				<TextInput label="Title" id="task_title" placeholder="Do dishes" onBlur={this.handleTitleChange} value={this.props.task.title} />
 				<TextInput label="Tags" id="task_tags" placeholder="apa, bepa, cepa" onBlur={this.handleTagsChange} value={this.props.task.tags} />
 				<TextArea label="Description" id="task_description" placeholder="Longform description of the task" onBlur={this.handleDescriptionChange} value={this.props.task.description} />
 			</div>
-				<NotesList notes={this.props.task.notes} taskId={this.props.task.id} />
-				</div>
 		);
 	},
 });
@@ -86,9 +97,7 @@ var DetailsView = React.createClass ({
 var NotesList = React.createClass({
 	addNote: function (event) {
 		event.preventDefault();
-		var element = event.target["body"];
-		var body = element.value.trim();
-		console.log(body);
+		var body = this.refs.body.state.inputValue.trim();
 		if (body == "") { return; }
 
 		TaskStore.addNote(this.props.taskId, body);
@@ -126,6 +135,7 @@ var TaskView = React.createClass({
 		return (
 			<div className="taskView">
 				<DetailsView task={this.props.task} />
+				<NotesList notes={this.props.task.notes} taskId={this.props.task.id} />
 			</div>);
 	},
 });
@@ -153,7 +163,10 @@ var TextInput = React.createClass({
 		this.setState({isFocused: true});
 	},
 	render: function () {
-		var {id, label, value, placeholder, onBlur, ...other} = this.props;
+		var id = this.props.id,
+			label = this.props.label,
+			//value = this.props.value,
+			placeholder = this.props.placeholder;
 		var inputValue = this.state.inputValue;
 		var empty = (! inputValue);
 		var classes = ["textInput"];
@@ -174,7 +187,6 @@ var TextInput = React.createClass({
 					onChange={this.handleInput}
 					onBlur={this.handleBlur}
 					onFocus={this.handleFocus}
-			{...other}
 					/>
 			</div>
 		);
@@ -197,7 +209,10 @@ var TextArea = React.createClass({
 		this.setState({isFocused: true});
 	},
 	render: function () {
-		var {id, label, value, placeholder, ...other} = this.props;
+		var id = this.props.id,
+			label = this.props.label,
+			value = this.props.value,
+			placeholder = this.props.placeholder;
 		var inputValue = this.state.inputValue;
 		var empty = (! inputValue);
 		var classes = ["textInput", "expandingArea"];
@@ -219,7 +234,7 @@ var TextArea = React.createClass({
 					onChange={this.handleInput}
 					onBlur={this.handleBlur}
 					onFocus={this.handleFocus}
-					{...other}></textarea>
+					></textarea>
 			</div>
 		);
 	},
@@ -229,8 +244,15 @@ var AppBar = React.createClass({
 	render: function () {
 		return (
 			<div className="appBar">
-				<h1>{this.props.title}</h1>
-				<a href="#">+</a>
+				<div className="firstLine">
+					<h1>{this.props.title}</h1>
+					<Link className="newTaskLink" to="inboxNew">+</Link>
+				</div>
+				<ul className="navigation">
+					<li><Link to="inbox">Inbox</Link></li>
+					<li><Link to="projects">Projects</Link></li>
+					<li><Link to="search">Search</Link></li>
+				</ul>
 			</div>
 		);
 	},
@@ -239,14 +261,8 @@ var AppBar = React.createClass({
 var InboxView = React.createClass({
 	getInitialState: function() {
 		return {
-			tasks: TaskStore.getAll(),
-			selectedTask: null,
+			tasks: TaskStore.getAll()
 		};
-	},
-	selectTask: function (task) {
-		this.setState({selectedTask: task});
-	},
-	createTask: function () {
 	},
 	storeDidChange: function () {
 		this.setState({tasks: TaskStore.getAll()});
@@ -259,35 +275,48 @@ var InboxView = React.createClass({
 		this.state.unregister();
 	},
 	render: function () {
-		var bar;
-		var content;
-		if (this.state.selectedTask) {
-			title = this.state.selectedTask.title;
-			bar = (
-				<AppBar title={title} />
-			);
-			content = (
-				<DetailsView task={this.state.selectedTask} />
-			);
-		}
-		else {
-			bar = (
-				<AppBar title="Inbox" />
-			);
-			content = (
-				<TaskList tasks={this.state.tasks} select={this.selectTask} />
-			);
-		}
 		return (
 			<div className="inboxView">
-				{bar}
-				{content}
+				<AppBar title="Inbox" />
+				<TaskList tasks={this.state.tasks} />
 			</div>
 		);
 	},
 });
 
-var NewTaskView = React.createClass({
+var InboxTask = React.createClass({
+	getInitialState: function() {
+		var taskId = parseInt(this.props.params.taskId);
+		return {
+			task: TaskStore.getId(taskId),
+		};
+	},
+	storeDidChange: function () {
+		var taskId = parseInt(this.props.params.taskId);
+		this.setState({
+			task: TaskStore.getId(taskId),
+		});
+	},
+	componentDidMount: function () {
+		var unregister = TaskStore.events.change.listen(this.storeDidChange, this);
+		this.setState({unregister: unregister});
+	},
+	componentWillUnmount: function () {
+		this.state.unregister();
+	},
+	render: function () {
+		var task = this.state.task;
+		var notesList = task.notes || [];
+		return (
+			<div className="inboxView">
+				<AppBar title={task.title} />
+				<DetailsView task={task} />
+				<NotesList notes={notesList} taskId={task.id} />
+			</div>
+		);
+	},
+});
+var InboxNew = React.createClass({
 	getInitialState: function () {
 		return {
 			task: {},
@@ -303,24 +332,54 @@ var NewTaskView = React.createClass({
 	},
 });
 
-
-
-var Application = React.createClass({
+var ProjectView = React.createClass({
 	render: function () {
-		var content;
-		content = ( <InboxView select={this.selectTask} /> );
 		return (
-			<div>
-				{content}
+			<div className="projectView">
+				<AppBar title="Projects" />
 			</div>
 		);
 	},
 });
 
+var SearchView = React.createClass({
+	render: function () {
+		return (
+			<div className="searchView">
+				<AppBar title="Search" />
+			</div>
+		);
+	},
+});
+
+var Application = React.createClass({
+	render: function () {
+		return (
+			<div>
+				<RouteHandler />
+			</div>
+		);
+	},
+});
+
+var routes = [
+	<Route handler={Application}>
+		<Route name="inbox" path="/" handler={InboxView} />
+		<Route name="inboxNew" path="/inbox/new" handler={InboxNew} />
+		<Route name="inboxTask" path="/inbox/:taskId" handler={InboxTask} />
+
+		<Route name="projects" path="/projects/" handler={ProjectView} />
+
+		<Route name="search" path="/search/" handler={SearchView} />
+	</Route>
+];
+
+ReactRouter.run(routes, function (Handler) {
+	React.render(<Handler />, document.getElementById('content'));
+});
+
+/*
 React.render((
-	<Router history={history}>
-		<Route path="/" component={Application}>
-			<Route path="inbox" component={InboxView}/>
-		</Route>
-	</Router>
+	<Application />
 ), document.getElementById('content'));
+*/

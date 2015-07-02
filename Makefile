@@ -1,15 +1,16 @@
 JSX = jsx
-COMPILE.jsx = $(JSX) --e6module --source-map-inline --cache-dir .module-cache
+COMPILE.jsx = $(JSX) --cache-dir .module-cache
+#COMPILE.jsx += --source-map-inline --e6module
 
 JSSRC = $(shell find js -name '*.js')
 JSXSRC = $(shell find jsx -name '*.jsx')
 SRC  = $(subst js/,tmp/,$(JSSRC))
 #SRC += $(subst jsx/,tmp/,$(JSXSRC:.jsx=.js))
 
-default: tmp/offline.js
+default: bundle.js
 
 tmp/%.js: jsx/%.js | tmp
-	$(COMPILE.jsx) $(<D) $(@D) $*
+	$(COMPILE.jsx) $(<D) $(@D) $* && touch $@ && touch $@
 
 tmp/%.js: js/%.js | tmp
 	cp $^ $@
@@ -17,8 +18,8 @@ tmp/%.js: js/%.js | tmp
 %.min.js: %js
 	uglifyjs -o $@
 
-bundle.js: $(SRC)
-	browserify --debug -o $@ $^
+bundle.js: tmp/offline.js js/store.js js/actions.js
+	browserify -d -o $@ $< || rm $@
 
 %.min.js: %.js
 	uglifyjs $^ -o $@
@@ -27,4 +28,4 @@ tmp:
 	mkdir $@
 
 clean:
-	$(RM) -r tmp
+	$(RM) -r tmp bundle.js

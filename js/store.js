@@ -1,3 +1,5 @@
+//var Action = require("./actions.js")
+
 function Store() {}
 
 /*
@@ -101,3 +103,5 @@ Store.prototype.update = function (id, payload) {
 
 	this.events.change();
 };
+
+//module.exports = Store;

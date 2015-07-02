@@ -41,3 +41,5 @@ Action.prototype.fire = function () {
 		this.listeners[i]();
 	}
 };
+
+//module.exports = Action;
