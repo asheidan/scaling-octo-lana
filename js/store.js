@@ -70,6 +70,7 @@ Store.prototype.add = function (payload) {
 	}
 	*/
 	payload.id = id;
+	payload.added = new Date();
 	this.items.set(id, payload);
 
 	this.events.change();
@@ -78,6 +79,10 @@ Store.prototype.add = function (payload) {
 
 Store.prototype.count = function () {
 	return this.items.size;
+};
+
+Store.prototype.getIterator = function () {
+	return this.items.values();
 };
 
 Store.prototype.getAll = function () {
@@ -99,9 +104,18 @@ Store.prototype.update = function (id, payload) {
 		if (key != "id") {
 			o[key] = payload[key];
 		}
+		o.modified = new Date();
 	}
 
 	this.events.change();
 };
 
+Store.prototype.remove = function (id) {
+	console.log(typeof id);
+	if (this.items.delete(id)) {
+		console.log("stuff deleted");
+
+		this.events.change();
+	}
+};
 //module.exports = Store;

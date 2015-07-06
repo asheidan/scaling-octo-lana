@@ -11,6 +11,13 @@ input[type=checkbox] {
 	margin: 15px 0px;
 	max-width: 370px;
 }
+.textInput:after {
+	clear: both;
+	content: " ";
+	height: 0px;
+	visibility: hidden;
+	display: block;
+}
 .textInput label {
 	display: block;
 	position: absolute;
@@ -20,9 +27,44 @@ input[type=checkbox] {
 	font-size: 11px;
 	transition: margin-top 0.2s ease, font-size 0.2s ease, color 0.2s ease;
 }
+.textInput .button {
+	float: right;
+	margin-left: 10px;
+
+	font-size: 16px;
+	//line-height: 36px;
+	height: 36px;
+	min-width: 80px;
+	display: block;
+	border: none;
+	border-radius: 4px;
+
+	color: rgb(145, 170, 157);
+	background-color: transparent;
+	transition: background-color 0.2s ease;
+	outline: none;
+}
+.textInput .button:hover {
+	background-color: rgba(145, 170, 157, 0.1);
+}
+.textInput .button:active,
+.textInput .button:focus {
+	background-color: rgba(145, 170, 157, 0.3);
+}
+.textInput .primary {
+	color: rgb(255, 64, 129);
+}
+.textInput .primary:hover {
+	background-color: rgba(255, 89, 180, 0.15);
+}
+.textInput .primary:active,
+.textInput .primary:focus {
+	background-color: rgba(255, 89, 180, 0.3);
+}
 .textInput input[type=text],
 .textInput textarea {
-	border-color: rgb(209, 219, 189);
+	//border-color: rgb(209, 219, 189);
+	border-color: transparent;
 	border-style: solid;
 	border-width: 0px 0px 1px 0px;
 	border-radius: 0px;
@@ -33,13 +75,26 @@ input[type=checkbox] {
 
 	margin-top: 13px;
 	padding: 0px 0px 2px 0px;
-	transition: border-color 0.2s ease;
+	transition: border-color 0.2s ease, height 0.2s ease;
+	outline: none;
+}
+.textInput.expandingArea textarea {
+	overflow: hidden;
+	resize: none;
+}
+.textInput.expandingArea {
+	position: relative;
 }
 .textInput.expandingArea pre {
-	width: 100%;
+	//width: 100%;
+	position: absolute;
 	font: 400 16px Avenir next, Roboto, sans-serif;
+	margin-top: 13px;
 	white-space: pre-wrap;
-	word-wrap: break-textInput;
+	word-wrap: break-word;
+	display: block;
+	visibility: hidden;
+	z-index: -1;
 }
 .textInput input[type=text]:focus,
 .textInput textarea:focus {
@@ -94,11 +149,20 @@ table tbody td {
 }
 
 .appBar {
+	background-color: white;
 	color: rgba(255,255,255,0.87);
 
-	padding: 0px 24px;
+	padding: 0px;
 	margin: 0px 0px 5px 0px;
 	box-shadow: 0px 2px 4px rgba(0,0,0,0.5);
+
+	position: fixed;
+	top: 0px;
+	width: 100%;
+	z-index: 1;
+}
+.appBar + * {
+	margin-top: 64px !important;
 }
 .appBar .firstLine {
 	display: -webkit-box;
@@ -107,6 +171,11 @@ table tbody td {
 	display: -webkit-flex;
 	display: flex;
 	flex-direction: row;
+}
+.appBar .firstLine a {
+	display: block;
+	text-align: center;
+	width: 48px;
 }
 .inboxView .appBar {
 	background-color: rgb(25, 52, 65);
@@ -117,9 +186,12 @@ table tbody td {
 .searchView .appBar {
 	background-color: rgb(64, 24, 54);
 }
+.dropboxAuthView .appBar {
+	background-color: rgb(19, 106, 214);
+}
 
 .appBar h1 {
-	margin: 0px;
+	margin: 0px 15px;
 
 	-webkit-box-flex: 1;
 	-moz-box-flex: 1;
@@ -131,6 +203,8 @@ table tbody td {
 	line-height: 64px;
 	font-size: 24px;
 
+	overflow: hidden;
+	white-space: nowrap;
 	text-overflow: ellipsis;
 }
 .appBar a.newTaskLink {
@@ -145,6 +219,7 @@ table tbody td {
 	display: block;
 	position: absolute;
 	top: 47px;
+	left: 20px;
 	line-height: 15px;
 	font-size: 13px;
 	margin: 0px;
@@ -181,7 +256,6 @@ table tbody td {
 .taskList {
 	list-style: none;
 	padding: 0px;
-	margin: 0px;
 }
 .taskList .taskItem {
 	padding: 5px 15px;
@@ -200,6 +274,10 @@ table tbody td {
 }
 .taskItem .title {
 	display: block;
+
+	overflow: hidden;
+	text-overflow: ellipsis;
+	white-space: nowrap;
 }
 .taskItem .project {
 	display: block;
@@ -216,11 +294,28 @@ table tbody td {
 	font-size: 11px;
 }
 
-.taskView .details {
-}
-
 .detailsView {
 	margin: 0px 15px;
+}
+.detailsView label {
+	min-width: 80px;
+	font-size: 11px;
+	color: rgb(145, 170, 157);
+}
+.detailsView .timestamp {
+	margin: 3px 0px;
+	font-size: 13px;
+	color: rgb(145, 170, 157);
+}
+.detailsView .timestamp:after {
+	content: " ";
+	clear: both;
+	height: 0px;
+	display: block;
+	visibility: hidden;
+}
+.detailsView .timestamp label {
+	float: left;
 }
 
 .taskNotesList {

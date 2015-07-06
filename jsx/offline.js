@@ -2,8 +2,36 @@
 //var Store = require('../js/store.js');
 
 var Route = ReactRouter.Route;
+var NotFoundRoute = ReactRouter.NotFoundRoute;
 var RouteHandler = ReactRouter.RouteHandler;
 var Link = ReactRouter.Link;
+var Navigation = ReactRouter.Navigation;
+
+function formatDate(date) {
+	if (! date) {
+		return "";
+	}
+
+	function pad(i) {
+		if (i < 10) {
+			return "0" + i;
+		}
+		else {
+			return "" + i;
+		}
+	}
+	var year = date.getFullYear();
+	var month = date.getMonth() + 1;
+	var day = date.getDate();
+
+	var hour = date.getHours();
+	var minute = date.getMinutes();
+	var second = date.getSeconds();
+
+	return "" + year +"-" +  pad(month) + "-" + pad(day) + " " + pad(hour) + ":" + pad(minute) + ":" + pad(second);
+}
+
+var TokenStore = Store.create();
 
 var TaskStore = Store.create();
 TaskStore.addNote = function (taskId, noteBody) {
@@ -14,6 +42,16 @@ TaskStore.addNote = function (taskId, noteBody) {
 
 		this.events.change();
 	}
+};
+TaskStore.getAllUncompleted = function () {
+	var it = this.getIterator();
+	var result = [];
+	for (var value of it) {
+		if (! value.completed) {
+			result.push(value);
+		}
+	}
+	return result;
 };
 
 TaskStore.add({title: "Bada nisse", description: "Nisse är riktigt smutsig och behöver verkligen bada. Att inte bada är inte vore katastrofalt och skulle kunna leda till en sanitär olägenhet.", tags: ["apa", "bepa", "cepa"], created: "2015-01-01 12:24:40"});
@@ -44,7 +82,10 @@ var TaskItem = React.createClass({
 	*/
 	render: function () {
 		var task = this.props.task;
-		var tags = task.tags.join(", ");
+		var tags;
+		if (task.tags) {
+			tags = task.tags.join(", ");
+		}
 		return (
 			<li className="taskItem">
 				<div className="tags">{tags}</div>
@@ -78,31 +119,81 @@ var DetailsView = React.createClass ({
 		this._updateTask("title", e.target.value);
 	},
 	handleTagsChange: function (e) {
-		this._updateTask("tags", e.target.value);
+		var tags = e.target.value.split(/ *, */).sort();
+		var uniqTags = [];
+		if (tags.length > 0) {
+			for (var i = 0; i < tags.length; ++i) {
+				var tag = tags[i];
+				if (tag) {
+					if (0 == uniqTags.length) {
+						uniqTags.push(tag);
+					}
+					else {
+						if (uniqTags[uniqTags.length - 1] != tag) {
+							uniqTags.push(tag);
+						}
+					}
+				}
+			}
+		}
+		this._updateTask("tags", uniqTags);
 	},
 	handleDescriptionChange: function (e) {
 		this._updateTask("description", e.target.value);
 	},
 	render: function () {
+		var task = this.props.task;
+		var added = formatDate(task.added);
+		if (added) {
+			added = (
+				<div className="timestamp"><label>Added</label> {added}</div>
+			);
+		}
+		var modified = formatDate(task.modified);
+		if (modified) {
+			modified = (
+				<div className="timestamp"><label>Modified</label> {modified}</div>
+			);
+		}
+		var completed = formatDate(task.completed);
+		if (completed) {
+			completed = (
+				<div className="timestamp"><label>Completed</label> {completed}</div>
+			);
+		}
 		return (
 			<div className="detailsView">
 				<TextInput label="Title" id="task_title" placeholder="Do dishes" onBlur={this.handleTitleChange} value={this.props.task.title} />
 				<TextInput label="Tags" id="task_tags" placeholder="apa, bepa, cepa" onBlur={this.handleTagsChange} value={this.props.task.tags} />
 				<TextArea label="Description" id="task_description" placeholder="Longform description of the task" onBlur={this.handleDescriptionChange} value={this.props.task.description} />
+
+				{added}
+				{modified}
+				{completed}
+				{this.props.extra}
 			</div>
 		);
 	},
 });
 
 var NotesList = React.createClass({
-	addNote: function (event) {
-		event.preventDefault();
+	addNote: function () {
 		var body = this.refs.body.state.inputValue.trim();
 		if (body == "") { return; }
 
 		TaskStore.addNote(this.props.taskId, body);
 
 		this.refs.body.setState({inputValue: ""});
+	},
+	handleSubmit: function (e) {
+		e.preventDefault();
+		this.addNote();
+	},
+	handleKeyUp: function (e) {
+		e.preventDefault();
+		if (e.ctrlKey && 13 === e.which) {
+			this.addNote();
+		}
 	},
 	render: function () {
 		var notes;
@@ -111,7 +202,7 @@ var NotesList = React.createClass({
 				return (
 					<li>
 						{note.body}
-						<div className="timestamp">{note.timestamp.toISOString()}</div>
+						<div className="timestamp">{formatDate(note.timestamp)}</div>
 					</li>
 				);
 			});
@@ -123,7 +214,7 @@ var NotesList = React.createClass({
 					{notes}
 				</ul>
 				<form onSubmit={this.addNote}>
-				<TextInput label="Add note" id="task_add_note" placeholder="Text of note" ref="body" name="body" />
+					<TextArea label="Add note" id="task_add_note" placeholder="Text of note" ref="body" name="body" onKeyUp={this.handleKeyUp} />
 				</form>
 			</div>
 		);
@@ -199,20 +290,44 @@ var TextArea = React.createClass({
 			isFocused: false,
 		};
 	},
+	resizeField: function () {
+		var pre = React.findDOMNode(this.refs.pre);
+		var field = React.findDOMNode(this.refs.field);
+		var height = pre.offsetHeight;
+		/*
+		console.log("client", pre.clientHeight);
+		console.log("offset", pre.offsetHeight);
+		console.log("scroll", pre.scrollHeight);
+		*/
+
+		field.setAttribute("style", "height:" + height + "px");
+		//field.clientHeight = pre.clientHeight;
+	},
 	handleInput: function (e) {
+		setTimeout(this.resizeField, 100);
 		this.setState({inputValue: e.target.value});
 	},
 	handleBlur: function (e) {
 		this.setState({isFocused: false});
+		if (this.props.onBlur) {
+			this.props.onBlur(e);
+		}
+		if (this.props.clearOnBlur) {
+			this.setState({inputValue: ""});
+		}
 	},
 	handleFocus: function (e) {
 		this.setState({isFocused: true});
+	},
+	componentDidMount: function () {
+		this.resizeField();
 	},
 	render: function () {
 		var id = this.props.id,
 			label = this.props.label,
 			value = this.props.value,
-			placeholder = this.props.placeholder;
+			placeholder = this.props.placeholder,
+			onKeyUp = this.props.onKeyUp;
 		var inputValue = this.state.inputValue;
 		var empty = (! inputValue);
 		var classes = ["textInput", "expandingArea"];
@@ -222,18 +337,20 @@ var TextArea = React.createClass({
 		if (this.state.isFocused) {
 			classes.push("focused");
 		}
-		// 				<pre><span>{this.state.inputValue}</span><br /></pre>
 		return (
 			<div className={classes.join(" ")}>
 				<label htmlFor={id}>{label}</label>
+				<pre ref="pre"><span>{this.state.inputValue}</span><br /></pre>
 				<textarea
 					id={id}
+					ref="field"
 					type="text"
 					value={this.state.inputValue}
 					placeholder={placeholder}
 					onChange={this.handleInput}
 					onBlur={this.handleBlur}
 					onFocus={this.handleFocus}
+					onKeyUp={onKeyUp}
 					></textarea>
 			</div>
 		);
@@ -252,6 +369,7 @@ var AppBar = React.createClass({
 					<li><Link to="inbox">Inbox</Link></li>
 					<li><Link to="projects">Projects</Link></li>
 					<li><Link to="search">Search</Link></li>
+					<li><Link to="auth">Auth</Link></li>
 				</ul>
 			</div>
 		);
@@ -261,7 +379,7 @@ var AppBar = React.createClass({
 var InboxView = React.createClass({
 	getInitialState: function() {
 		return {
-			tasks: TaskStore.getAll()
+			tasks: TaskStore.getAllUncompleted()
 		};
 	},
 	storeDidChange: function () {
@@ -285,6 +403,7 @@ var InboxView = React.createClass({
 });
 
 var InboxTask = React.createClass({
+	mixins: [Navigation],
 	getInitialState: function() {
 		var taskId = parseInt(this.props.params.taskId);
 		return {
@@ -304,29 +423,59 @@ var InboxTask = React.createClass({
 	componentWillUnmount: function () {
 		this.state.unregister();
 	},
+	removeTask: function () {
+		TaskStore.remove(parseInt(this.props.params.taskId));
+		this.transitionTo("inbox");
+	},
+	completeTask: function () {
+		var now = new Date();
+		TaskStore.update(parseInt(this.props.params.taskId),
+						 {completed: now});
+	},
 	render: function () {
 		var task = this.state.task;
 		var notesList = task.notes || [];
+		var extra = (
+				<div className="textInput">
+				<button className="button primary" onClick={this.completeTask}>Complete</button>
+				<button className="button" onClick={this.removeTask} >Remove</button>
+				</div>
+		);
 		return (
 			<div className="inboxView">
 				<AppBar title={task.title} />
-				<DetailsView task={task} />
+				<DetailsView task={task} extra={extra} />
 				<NotesList notes={notesList} taskId={task.id} />
 			</div>
 		);
 	},
 });
 var InboxNew = React.createClass({
+	mixins: [Navigation],
 	getInitialState: function () {
 		return {
 			task: {},
 		};
 	},
+	handleSubmit: function (e) {
+		e.preventDefault();
+		console.log(this.state.task);
+		TaskStore.add(this.state.task);
+		this.transitionTo("inbox");
+	},
 	render: function () {
+		var submit = (
+				<div className="textInput">
+				<input className="button primary" type="submit" value="Add" />
+				<input className="button" type="reset" value="Clear" />
+				</div>
+		);
 		return (
-			<div className="newTaskView">
+			<div className="inboxView">
 				<AppBar title="NewTask" />
-				<DetailsView task={this.state.task} />
+				<form onSubmit={this.handleSubmit} >
+				<DetailsView task={this.state.task} extra={submit} />
+				</form>
 			</div>
 		);
 	},
@@ -352,6 +501,39 @@ var SearchView = React.createClass({
 	},
 });
 
+var DropboxAuthView = React.createClass({
+	getInitialState: function () {
+		return {
+			token: Dropbox.getToken(),
+			data: null,
+		};
+	},
+	handleTokenUpdate: function (e) {
+		Dropbox.setToken(e.target.value);
+		var data = JSON.stringify(TaskStore.getAll());
+		var self = this;
+		Ajax.createRequest({
+			url: 'https://api-content.dropbox.com/1/files_put/auto/tasks.json',
+			method: "PUT",
+			data: data,
+		})
+			.then(JSON.parse)
+			.then(function (response) {
+				console.log("success", response);
+				self.setState({data: response});
+			});
+	},
+	render: function () {
+		return (
+			<div className="dropboxAuthView">
+				<AppBar title="Dropbox Authentication" />
+				<TextInput id="token" label="Token" onBlur={this.handleTokenUpdate} value={this.state.token} />
+				<div>{this.state.data}</div>
+			</div>
+		);
+	},
+});
+
 var Application = React.createClass({
 	render: function () {
 		return (
@@ -371,6 +553,10 @@ var routes = [
 		<Route name="projects" path="/projects/" handler={ProjectView} />
 
 		<Route name="search" path="/search/" handler={SearchView} />
+
+		<Route name="auth" path="/auth/" handler={DropboxAuthView} />
+		<NotFoundRoute handler={DropboxAuthView} />
+		<Route name="authReturn" path="/access_token" handler={DropboxAuthView} />
 	</Route>
 ];
 
