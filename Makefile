@@ -9,6 +9,9 @@ SRC  = $(subst js/,tmp/,$(JSSRC))
 
 default: bundle.js
 
+dependencies: react react-router
+	bower install $^
+
 tmp/%.js: jsx/%.js | tmp
 	$(COMPILE.jsx) $(<D) $(@D) $* && touch $@ && touch $@
 
