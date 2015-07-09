@@ -1,7 +1,7 @@
 function Dropbox() {}
 
 Dropbox.userData = {
-	token: null,
+	token: localStorage["dropboxToken"],
 	uid: null,
 };
 
@@ -39,5 +39,6 @@ Dropbox.getToken = function () {
 };
 
 Dropbox.setToken = function (token) {
+	localStorage["dropboxToken"] = token;
 	Dropbox.userData.token = token;
 };

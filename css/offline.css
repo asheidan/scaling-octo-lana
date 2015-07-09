@@ -162,7 +162,7 @@ table tbody td {
 	z-index: 1;
 }
 .appBar + * {
-	margin-top: 64px !important;
+	margin-top: 74px !important;
 }
 .appBar .firstLine {
 	display: -webkit-box;

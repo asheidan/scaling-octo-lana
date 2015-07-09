@@ -100,14 +100,17 @@ Store.prototype.getId = function (id) {
 
 Store.prototype.update = function (id, payload) {
 	var o = this.getId(id);
+	var changed = false;
 	for(var key in payload) {
 		if (key != "id") {
 			o[key] = payload[key];
+			changed = true;
 		}
-		o.modified = new Date();
 	}
-
-	this.events.change();
+	if (changed) {
+		o.modified = new Date();
+		this.events.change();
+	}
 };
 
 Store.prototype.remove = function (id) {

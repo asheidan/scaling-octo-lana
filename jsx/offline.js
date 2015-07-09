@@ -119,7 +119,7 @@ var DetailsView = React.createClass ({
 		this._updateTask("title", e.target.value);
 	},
 	handleTagsChange: function (e) {
-		var tags = e.target.value.split(/ *, */).sort();
+		var tags = e.target.value.trim().split(/ *, */).sort();
 		var uniqTags = [];
 		if (tags.length > 0) {
 			for (var i = 0; i < tags.length; ++i) {
@@ -144,6 +144,7 @@ var DetailsView = React.createClass ({
 	render: function () {
 		var task = this.props.task;
 		var added = formatDate(task.added);
+		var tags = this.props.task.tags ? this.props.task.tags.join(", ") : "";
 		if (added) {
 			added = (
 				<div className="timestamp"><label>Added</label> {added}</div>
@@ -163,9 +164,9 @@ var DetailsView = React.createClass ({
 		}
 		return (
 			<div className="detailsView">
-				<TextInput label="Title" id="task_title" placeholder="Do dishes" onBlur={this.handleTitleChange} value={this.props.task.title} />
-				<TextInput label="Tags" id="task_tags" placeholder="apa, bepa, cepa" onBlur={this.handleTagsChange} value={this.props.task.tags} />
-				<TextArea label="Description" id="task_description" placeholder="Longform description of the task" onBlur={this.handleDescriptionChange} value={this.props.task.description} />
+				<TextInput key={"task_title_" + task.id} label="Title" id="task_title" placeholder="Do dishes" onBlur={this.handleTitleChange} value={this.props.task.title} />
+				<TextInput key={"task_tags_" + task.id} label="Tags" id="task_tags" placeholder="apa, bepa, cepa" onBlur={this.handleTagsChange} value={tags} />
+				<TextArea key={"task_description_" + task.id} label="Description" id="task_description" placeholder="Longform description of the task" onBlur={this.handleDescriptionChange} value={this.props.task.description} />
 
 				{added}
 				{modified}
@@ -238,6 +239,9 @@ var TextInput = React.createClass({
 			isFocused: false,
 		};
 	},
+	componentWillReceiveProps: function (nextProps) {
+		this.setState({inputValue: nextProps.value});
+	},
 	handleInput: function (e) {
 		this.setState({inputValue: e.target.value});
 	},
@@ -294,11 +298,6 @@ var TextArea = React.createClass({
 		var pre = React.findDOMNode(this.refs.pre);
 		var field = React.findDOMNode(this.refs.field);
 		var height = pre.offsetHeight;
-		/*
-		console.log("client", pre.clientHeight);
-		console.log("offset", pre.offsetHeight);
-		console.log("scroll", pre.scrollHeight);
-		*/
 
 		field.setAttribute("style", "height:" + height + "px");
 		//field.clientHeight = pre.clientHeight;
@@ -459,7 +458,6 @@ var InboxNew = React.createClass({
 	},
 	handleSubmit: function (e) {
 		e.preventDefault();
-		console.log(this.state.task);
 		TaskStore.add(this.state.task);
 		this.transitionTo("inbox");
 	},
@@ -520,7 +518,16 @@ var DropboxAuthView = React.createClass({
 			.then(JSON.parse)
 			.then(function (response) {
 				console.log("success", response);
-				self.setState({data: response});
+				//self.setState({data: response});
+			})
+			.then(function (response) {
+				Ajax.createRequest({
+					url: 'https://api-content.dropbox.com/1/files/auto/tasks.json',
+					method: "GET",
+				})
+					.then(function (response) {
+						console.log(response);
+					});
 			});
 	},
 	render: function () {
