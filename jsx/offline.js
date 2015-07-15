@@ -518,6 +518,8 @@ var DropboxAuthView = React.createClass({
 			.then(JSON.parse)
 			.then(function (response) {
 				console.log("success", response);
+				var date = new Date(response.modified);
+				console.log(formatDate(date));
 				//self.setState({data: response});
 			})
 			.then(function (response) {
@@ -525,6 +527,7 @@ var DropboxAuthView = React.createClass({
 					url: 'https://api-content.dropbox.com/1/files/auto/tasks.json',
 					method: "GET",
 				})
+					.then(JSON.parse)
 					.then(function (response) {
 						console.log(response);
 					});
